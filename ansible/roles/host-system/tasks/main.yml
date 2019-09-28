@@ -1,0 +1,29 @@
+---
+- name: host-system | set memory swappiness
+  sysctl:
+    name: vm.swappiness
+    value: "{{ host_system_memory_swappiness | int }}"
+    state: present
+    reload: yes
+
+- name: host-system | install packages
+  dnf:
+    name: "{{ host_system_packages }}"
+    state: present
+
+- name: host-system | ensure services are enabled and started
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+  - libvirtd
+  - ksm
+
+# Safe to ignore errors, we do not need to be perfect here
+- name: host-system | remove libvirtd defaults
+  command: "{{ item }}"
+  ignore_errors: yes
+  with_items:
+  - "virsh net-destroy default"
+  - "virsh net-undefine default"

@@ -1,0 +1,23 @@
+---
+liab_base_image: CentOS-7-x86_64-GenericCloud-1907.qcow2
+liab_base_image_url: "https://cloud.centos.org/centos/7/images/{{ liab_base_image }}.xz"
+
+liab_machines:
+  lab1:
+    network: 192.168.255.0
+    netmask: 255.255.255.0
+    router:
+      name:
+      ip:
+    machines:
+      vm1:
+        ip:
+        disks:
+        cpu:
+        memory:
+  lab2:
+    network: 192.168.254.0
+    netmask: 255.255.255.0
+  lab3:
+    network: 192.168.253.0
+    netmask: 255.255.255.0

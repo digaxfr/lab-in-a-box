@@ -1,0 +1,72 @@
+---
+# Not using nmcli module because it is preview at the time of writing.
+# Doing it the hard-way also makes it so I actually learn nmcli.
+
+- name: liab/machines | mktemp
+  command: mktemp -d
+  register: _mktemp
+
+- block:
+  - name: liab/machines | check if we have our bridge interface
+    command: "nmcli dev show {{ item.key }}"
+    with_dict: "{{ liab_machines }}"
+    register: _bridges
+    ignore_errors: yes
+
+  - name: liab/machines | create bridge networks
+    command: "nmcli connection add ifname {{ item.item.key }} type bridge con-name {{ item.item.key }}"
+    with_items: "{{ _bridges.results }}"
+    when: "item.rc != 0"
+
+  - name: liab/machines | wait for connections to be created
+    command: "nmcli connection show {{ item.item.key }}"
+    with_items: "{{ _bridges.results }}"
+    register: _wait_for
+    when: item.rc != 0
+    retries: 5
+    delay: 2
+    until: "_wait_for.rc == 0"
+
+  - name: liab/machines | make relevant connection changes
+    command: "nmcli connection modify {{ item[0].item.key }} {{ item[1] }}"
+    with_nested:
+    - "{{ _bridges.results }}"
+    - - "ipv4.method disabled"
+      - "ipv6.method ignore"
+      - "802-3-ethernet.mtu 9000"
+    when: "item[0].rc != 0"
+
+  # Apparently NetworkManager requires ifdown/up or restart NetworkManager to make connection changes take effect
+  - name: liab/machines | bounce the connection
+    command: "nmcli connection {{ item[1] }} {{ item[0].item.key }}"
+    with_nested:
+    - "{{ _bridges.results }}"
+    - - "down"
+      - "up"
+    when: "item[0].rc != 0"
+
+  - name: liab/machines | check for libvirt network
+    shell: "virsh net-list --all --name | grep {{ item.key }}"
+    register: _libvirt_networks
+    with_dict: "{{ liab_machines }}"
+    ignore_errors: yes
+
+  - name: liab/machines | template out libvirt networks
+    template:
+      src: libvirt-network.xml.j2
+      dest: "{{ _mktemp.stdout }}/libvirt-network-{{ item.item.key }}.xml"
+    with_items: "{{ _libvirt_networks.results }}"
+    when: "item.rc != 0"
+
+  - name: liab/machines | create libvirt networks
+    command: "virsh net-define {{ _mktemp.stdout }}/libvirt-network-{{ item.item.key }}.xml"
+    with_items: "{{ _libvirt_networks.results }}"
+    when: "item.rc != 0"
+
+  - name: liab/machines | modify libvirt networks
+    command: "virsh {{ item[1] }} {{ item[0].item.key }}"
+    with_nested:
+    - "{{ _libvirt_networks.results }}"
+    - - "net-start"
+      - "net-autostart"
+    when: "item[0].rc != 0"

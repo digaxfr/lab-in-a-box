@@ -1,0 +1,15 @@
+---
+- name: liab-base-image | check if base image exists
+  stat:
+    path: "/var/lib/libvirt/images/{{ liab_base_image }}"
+  register: _stat
+
+- name: liab-base-image | pull latest image
+  uri:
+    url: "{{ liab_base_image_url }}"
+    dest: "/var/lib/libvirt/images/"
+  when: not _stat.stat.exists
+
+- name: liab-base-image | unpack the image
+  command: "xz -d /var/lib/libvirt/images/{{ liab_base_image }}.xz"
+  when: not _stat.stat.exists
