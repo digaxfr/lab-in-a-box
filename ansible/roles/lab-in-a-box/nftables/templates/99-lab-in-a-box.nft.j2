@@ -1,0 +1,60 @@
+#!/usr/sbin/nft -f
+# https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes
+# https://wiki.archlinux.org/index.php/Nftables
+# TODO: Refactor using dynamic generated variables
+
+table ip filter {
+  chain input {
+{% for network in networks %}
+{% if 'routing' in network %}
+    iifname {{ network }}a jump input-{{ network }}a
+{% endif %}
+{% endfor %}
+  }
+
+{% for network in networks %}
+{% if 'routing' in network %}
+  chain input-{{ network }}a {
+    counter udp dport 53 accept
+    counter udp dport 67 accept
+  }
+{% endif %}
+{% endfor %}
+
+  chain forward {
+{% for network in networks %}
+{% if 'routing' in network %}
+    iifname {{ network }}a jump forward-{{ network }}a
+    oifname {{ network }}a jump forward-{{ network }}a
+{% endif %}
+{% endfor %}
+  }
+
+# TODO: Examine this more...
+{% for network in networks %}
+{% if 'routing' in network %}
+  chain forward-{{ network }}a {
+    counter ip saddr {{ networks[network].network_int_cidr }} accept
+    counter ip daddr {{ networks[network].network_int_cidr }} accept
+    counter ip saddr {{ networks[network].network_cidr }} accept
+    counter ip daddr {{ networks[network].network_cidr }} accept
+  }
+{% endif %}
+{% endfor %}
+
+  chain prerouting {
+    type nat hook prerouting priority 0;
+  }
+
+  chain postrouting {
+    type nat hook postrouting priority 100;
+    counter oifname {{ ansible_default_ipv4.interface }} masquerade
+  }
+}
+
+# TODO: Let's learn more about this...
+table bridge filter {
+  chain forward {
+    type filter hook forward priority -200; policy accept;
+  }
+}

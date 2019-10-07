@@ -1,0 +1,79 @@
+# named.conf
+# Ansible managed
+
+acl "trusted" {
+    127.0.0.1;
+{% for network in networks %}
+    {{ networks[network].network_cidr }};
+{% endfor %}
+};
+
+options {
+    listen-on port 53 {
+        127.0.0.1;
+{% for network in networks %}
+{% if 'routing' in network %}
+        {{ networks[network].network_cidr | ipaddr('address') }};
+{% endif %}
+{% endfor %}
+    };
+    directory           "/var/named";
+    dump-file           "/var/named/data/cache_dump.db";
+    statistics-file     "/var/named/data/named_stats.txt";
+    memstatistics-file  "/var/named/data/named_mem_stats.txt";
+    secroots-file       "/var/named/data/named.secroots";
+    recursing-file      "/var/named/data/named.recursing";
+
+    allow-query     {
+        trusted;
+    };
+    allow-recursion {
+        trusted;
+    };
+    allow-query-cache {
+        trusted;
+    };
+
+    recursion yes;
+
+    dnssec-enable yes;
+    dnssec-validation yes;
+
+    managed-keys-directory "/var/named/dynamic";
+
+    pid-file "/run/named/named.pid";
+    session-keyfile "/run/named/session.key";
+
+    include "/etc/crypto-policies/back-ends/bind.config";
+};
+
+logging {
+    channel default_debug {
+        file "data/named.run";
+            severity dynamic;
+    };
+};
+
+zone "." IN {
+    type hint;
+    file "named.ca";
+};
+
+include "/etc/named.rfc1912.zones";
+include "/etc/named.root.key";
+
+zone "{{ domain_name }}." IN {
+    type master;
+    file "/etc/named/db.{{ domain_name }}";
+};
+
+# TODO: Support CIDRs other than /24; should be a fun weekend project
+{% for network in networks %}
+{% if 'routing' not in network %}
+{% set network_split = networks[network].network.split('.') %}
+zone "{{ network_split[2] }}.{{ network_split[1] }}.{{ network_split[0] }}.in-addr.arpa" {
+    type master;
+    file "/etc/named/db.{{ network_split[2] }}.{{ network_split[1] }}.{{ network_split[0] }}.in-addr.arpa";
+};
+{% endif %}
+{% endfor %}

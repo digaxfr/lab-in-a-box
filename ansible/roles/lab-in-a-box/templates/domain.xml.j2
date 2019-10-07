@@ -1,0 +1,56 @@
+<domain type="kvm">
+  <name>{{ item }}</name>
+  <memory unit='MiB'>{{ hostvars[item].memory }}</memory>
+  <currentMemory unit='MiB'>{{ hostvars[item].memory }}</currentMemory>
+  <vcpu>1</vcpu>
+  <os>
+    <type arch="x86_64" machine="pc-i440fx-rhel7.6.0">hvm</type>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+    <vmport state="off"/>
+  </features>
+  <cpu mode="host-model"/>
+  <clock offset="utc">
+    <timer name="rtc" tickpolicy="catchup"/>
+    <timer name="pit" tickpolicy="delay"/>
+    <timer name="hpet" present="no"/>
+  </clock>
+  <pm>
+    <suspend-to-mem enabled="no"/>
+    <suspend-to-disk enabled="no"/>
+  </pm>
+  <devices>
+    <emulator>/usr/libexec/qemu-kvm</emulator>
+    <controller type="usb" index="0" model="none"/>
+    <disk type="file" device="disk">
+      <driver name="qemu" type="qcow2"/>
+      <source file="/var/lib/libvirt/images/{{ item }}-vda.qcow2"/>
+      <target dev="vda" bus="virtio"/>
+    </disk>
+    <disk type="file" device="cdrom">
+      <driver name="qemu" type="raw"/>
+      <source file="/var/lib/libvirt/images/{{ item }}-cidata.iso"/>
+      <target dev="hda" bus="ide"/>
+    </disk>
+    <interface type="bridge">
+      <source bridge="{{ hostvars[item].network_name }}"/>
+      <mac address="{{ mac_prefix }}:{{ hostvars[item].ip | ip4_hex(delimiter=':') }}"/>
+      <model type="virtio-net-pci"/>
+    </interface>
+{% if 'router' in item %}
+    <interface type="bridge">
+      <source bridge="{{ hostvars[item].network_int_name }}"/>
+      <mac address="{{ mac_prefix }}:{{ hostvars[item].ip_int | ip4_hex(delimiter=':') }}"/>
+      <model type="virtio-net-pci"/>
+    </interface>
+{% endif %}
+    <console type="pty">
+      <target type="serial"/>
+    </console>
+    <video>
+      <model type="none"/>
+    </video>
+  </devices>
+</domain>

@@ -1,0 +1,9 @@
+# Ansible managed
+BOOTPROTO=static
+DEVICE=eth1
+HWADDR={{ mac_prefix }}:{{ ip_int | ip4_hex(delimiter=':') }}
+ONBOOT=yes
+TYPE=Ethernet
+USERCTL=no
+IPADDR={{ ip_int }}
+NETMASK={{ netmask_int }}

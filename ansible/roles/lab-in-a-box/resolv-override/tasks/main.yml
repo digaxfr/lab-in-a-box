@@ -1,0 +1,9 @@
+---
+# Cheap way to ensure our local DNS is inserted; not looking to argue with NetworkManager too much here.
+# I also don't want it to be persistent if I am hopping around different WiFi
+- name: liab/resolv-override | ensure 127.0.0.1 nameserver
+  lineinfile:
+    line: "nameserver 127.0.0.1 # Inserted by Ansible"
+    path: /etc/resolv.conf
+    insertbefore: BOF
+    state: present

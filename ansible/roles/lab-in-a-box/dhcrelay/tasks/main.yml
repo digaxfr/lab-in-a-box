@@ -1,0 +1,24 @@
+---
+- name: liab/dhcrelay | install packages
+  yum:
+    name: dhcp
+    state: present
+
+- name: liab/dhcrelay | tempalte out systemd unit file
+  template:
+    src: dhcrelay.service.j2
+    dest: /etc/systemd/system/dhcrelay.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart dhcrelay
+
+- name: liab/dhcrelay | systemd
+  systemd:
+    name: dhcrelay
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: liab/dhcrelay | flush handlers
+  meta: flush_handlers

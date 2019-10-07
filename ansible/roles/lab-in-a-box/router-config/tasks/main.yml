@@ -1,0 +1,28 @@
+---
+- name: liab/router-config | sysctl
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  with_items:
+  - key: net.ipv4.ip_forward
+    value: 1
+
+- name: liab/router-config | template out eth1
+  template:
+    src: ifcfg-eth1.j2
+    dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart network
+
+- name: liab/router-config | systemd
+  systemd:
+    name: network
+    state: started
+    enabled: yes
+
+- name: liab/router-config | flush handlers
+  meta: flush_handlers

@@ -1,0 +1,23 @@
+#!/usr/sbin/nft -f
+# https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes
+# https://wiki.archlinux.org/index.php/Nftables
+
+flush ruleset
+
+table ip filter {
+  chain input {
+    type filter hook input priority 0; policy drop; counter;
+
+    ct state established,related accept
+    iifname "lo" accept
+    icmp type echo-request accept
+  }
+
+  chain forward {
+    type filter hook forward priority 0; policy drop; counter;
+  }
+
+  chain output {
+    type filter hook output priority 0; policy accept; counter;
+  }
+}

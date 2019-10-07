@@ -1,0 +1,18 @@
+---
+- hosts: host_system
+  become: yes
+  gather_facts: no
+  roles:
+  - role: lab-in-a-box/delete-vm
+    vm_group: routers
+  - role: lab-in-a-box/create-vm
+    vm_group: routers
+
+- hosts: routers
+  become: yes
+  gather_facts: yes
+  roles:
+  - epel
+  - lab-in-a-box/router-config
+  - lab-in-a-box/bird1
+  - lab-in-a-box/dhcrelay

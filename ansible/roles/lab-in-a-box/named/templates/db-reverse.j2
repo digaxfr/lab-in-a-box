@@ -1,0 +1,17 @@
+;; Ansible Managed
+
+@   IN  SOA ns1.{{ domain_name }}. root.{{ domain_name }}. (
+    {{ ansible_date_time.epoch }} ; Serial
+    60 ; Refresh
+    30 ; Retry
+    120 ; Expire
+    10 ; TTL
+)
+
+; NS
+@                           IN  NS  ns1.{{ domain_name }}.
+
+; PTR records
+{% for host in groups[item.key] %}
+{{ hostvars[host].ip.split('.')[3] }} IN PTR {{ host }}.
+{% endfor %}

@@ -1,3 +1,4 @@
 *~
-.swp
+*.swp
 ansible.log
+__pycache__

@@ -1,0 +1,23 @@
+---
+- name: liab/delete-vm | asserts
+  assert:
+    that:
+    - vm_group is defined
+
+- name: liab/delete-vm | destroy VMs
+  command: "virsh destroy {{ item }}"
+  with_items: '{{ groups[vm_group] }}'
+  ignore_errors: yes
+
+- name: liab/delete-vm | undefine VMs
+  command: "virsh undefine {{ item }}"
+  with_items: '{{ groups[vm_group] }}'
+  ignore_errors: yes
+
+- name: liab/delete-vm | get rid of images
+  file:
+    path: "/var/lib/libvirt/images/{{ item[0] }}-{{ item[1] }}"
+    state: absent
+  with_nested:
+  - '{{ groups[vm_group] }}'
+  - ["vda.qcow2", "cidata.iso"]

@@ -1,0 +1,23 @@
+---
+- name: liab/bird2 | install bird
+  dnf:
+    name: bird
+    state: present
+
+- name: liab/bird2 | template bird conf
+  template:
+    src: bird.conf.j2
+    dest: /etc/bird.conf
+    owner: root
+    group: bird
+    mode: 0640
+  notify: restart bird
+
+- name: liab/bird2 | systemd
+  systemd:
+    name: bird
+    state: started
+    enabled: yes
+
+- name: liab/bird2 | flush handlers
+  meta: flush_handlers

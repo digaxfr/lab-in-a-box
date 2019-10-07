@@ -1,0 +1,9 @@
+---
+- name: wait-for-ssh | wait for ssh
+  local_action:
+    module: wait_for
+      host={{ wait_for_host | default(inentory_hostname) }}
+      port=22
+      delay=1
+      timeout=120
+  become: false

@@ -1,10 +1,15 @@
 ---
-- name: host-system | set memory swappiness
+- name: host-system | sysctls
   sysctl:
-    name: vm.swappiness
-    value: "{{ host_system_memory_swappiness | int }}"
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
     state: present
     reload: yes
+  with_items:
+  - key: net.ipv4.ip_forward
+    value: 1
+  - key: vm.swappiness
+    value: 100
 
 - name: host-system | install packages
   dnf:
@@ -27,3 +32,31 @@
   with_items:
   - "virsh net-destroy default"
   - "virsh net-undefine default"
+
+- name: host-system | disable firewalld
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+
+- name: host-system | ensure our default rules exist in sysconfig
+  lineinfile:
+    path: /etc/sysconfig/nftables.conf
+    line: 'include "/etc/nftables/99-localmachine.nft"'
+    create: yes
+  notify: restart nftables
+
+- name: host-system | template out our default rules
+  template:
+    src: 99-localmachine.nft.j2
+    dest: /etc/nftables/99-localmachine.nft
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart nftables
+
+- name: host-system | enable and start nftables
+  systemd:
+    name: nftables
+    state: started
+    enabled: yes

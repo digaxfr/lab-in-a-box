@@ -1,0 +1,15 @@
+---
+- hosts: host_system
+  become: yes
+  gather_facts: yes
+  roles:
+  - role: lab-in-a-box/delete-vm
+    vm_group: machines
+  - role: lab-in-a-box/create-vm
+    vm_group: machines
+
+- hosts: machines
+  become: yes
+  gather_facts: yes
+  roles:
+  - epel
