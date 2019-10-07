@@ -1,0 +1,45 @@
+---
+- name: liab/named | install packages
+  dnf:
+    name: "{{ named_packages }}"
+    state: present
+
+- name: liab/named | template out config
+  template:
+    src: named.conf.j2
+    dest: /etc/named.conf
+    owner: root
+    group: named
+    mode: 0640
+  notify: restart named
+
+- name: liab/named | template forward zone files
+  template:
+    src: db-forward.j2
+    dest: "/etc/named/db.{{ domain_name }}"
+    owner: root
+    group: named
+    mode: 0640
+  notify: restart named
+
+# TODO: Make this support any type of CIDR; assume /24 for now
+# Probably write a filter plugin that accepts a network/netmask and outputs the correct in-addr.arpa
+- name: liab/named | template reverse zone files
+  template:
+    src: db-reverse.j2
+    dest: "/etc/named/db.{{ item.value.network.split('.')[-2] }}.{{ item.value.network.split('.')[-3] }}.{{ item.value.network.split('.')[-4] }}.in-addr.arpa"
+    owner: root
+    group: named
+    mode: 0640
+  with_dict: "{{ networks }}"
+  when: '"routing" not in item.key'
+  notify: restart named
+
+- name: liab/named | systemd start and enable
+  systemd:
+    name: named
+    state: started
+    enabled: yes
+
+- name: liab/named | flush handlers
+  meta: flush_handlers

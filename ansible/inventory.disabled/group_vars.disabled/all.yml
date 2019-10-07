@@ -1,0 +1,44 @@
+---
+liab_mac_prefix: "1a:b0"
+liab_machines:
+  lab1:
+    network: 192.168.254.0
+    netmask: 255.255.255.0
+    peering_network: 192.168.255.254/31
+    bgp_asn: 65001
+    machines:
+      master1:
+        cpu: 1
+        memory: 1024
+        ip: 192.168.254.10
+        disks:
+        - name: vda
+          size: 64
+  lab2:
+    network: 192.168.253.0
+    netmask: 255.255.255.0
+    peering_network: 192.168.255.252/31
+    bgp_asn: 65002
+    machines:
+      master2:
+        cpu: 1
+        memory: 1024
+        ip: 192.168.253.10
+        disks:
+        - name: vda
+          size: 64
+  lab3:
+    network: 192.168.252.0
+    netmask: 255.255.255.0
+    peering_network: 192.168.255.250/31
+    bgp_asn: 65003
+    machines:
+      master3:
+        cpu: 1
+        memory: 1024
+        ip: 192.168.252.10
+        disks:
+        - name: vda
+          size: 64
+
+public_ssh_key: "AAAAB3NzaC1yc2EAAAADAQABAAABAQDrqxGbTKZj5PMtc2iOIaIPZuuk1GSUR0n4JCFEVIbNBuwI472cP6ShHr5iVWwdCDb4cbd70cPonG8Ayx7XGYCDYsbjakl4Vdz4a79UCZxMunNsRTFa3SPQGHU8qATn1UONoKFeKzfB+7H5/xC/EMBLwiyDRTr8H0kckuZUQVwOPHP/tAG/hXj/De2SNKdNxvB6mR8CNlLGnCpxj61WzWMEOFXRVr4cOtGj+Hdm37VZ7TE79gwX9HR5m2boRBI8nCQSz+U5hSXxIelzccChY1FiPwikmUx6Tkv4eoS6etwaoXdtY3CN9SVBBaC5VBNpc56TM3QZh353jIm4UUX+3dC9 dchin@failxps.localdomain"

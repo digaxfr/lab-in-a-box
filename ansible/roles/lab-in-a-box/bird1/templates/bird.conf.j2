@@ -1,0 +1,46 @@
+# Ansible managed
+# TODO: Learn and use better filters
+# https://gitlab.labs.nic.cz/labs/bird/wikis/BGP_filtering
+
+log syslog { debug, trace, info, remote, warning, error, auth, fatal, bug };
+log stderr all;
+
+router id {{ ansible_default_ipv4.address }};
+
+# debug protocols all;
+
+watchdog warning 5 s;
+watchdog timeout 30 s;
+
+filter sink { reject; };
+
+{% if 'routers' in hostvars[inventory_hostname].group_names %}
+protocol direct {
+    interface "eth1";
+}
+{% endif %}
+
+protocol device {
+    scan time 10;
+}
+
+protocol kernel {
+    persist;
+    learn;
+    scan time 20;
+    export all;
+}
+
+{% if 'routers' in hostvars[inventory_hostname].group_names %}
+protocol bgp uplink {
+    description "point-to-point uplink";
+    local {{ ip }} as {{ bgp_asn }};
+    neighbor {{ bgp_uplink_peer }} as {{ bgp_asn_uplink }};
+    export filter {
+        if net = {{ network_int_cidr }} then accept;
+        reject;
+    };
+    import filter sink;
+    source address {{ ip }};
+}
+{% endif %}

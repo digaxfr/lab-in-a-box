@@ -1,0 +1,21 @@
+# Ansible managed
+[Unit]
+Description=Setup veth pair for Lab-in-a-Box
+After=NetworkManager.service network-online.target
+Wants=NetworkManager.service network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=-/sbin/ip link delete {{ item.key }}a
+ExecStart=/bin/sleep 2
+ExecStart=/sbin/ip link add dev {{ item.key }}a type veth peer name {{ item.key }}b
+ExecStart=/sbin/ip address add {{ item.value.network_cidr | ipaddr("net") | ipaddr("0") }} dev {{ item.key }}a
+ExecStart=/sbin/ip link set {{ item.key }}a up
+ExecStart=/sbin/ip link set {{ item.key }}b up
+ExecStart=/sbin/ip link set dev {{ item.key }}b master {{ item.key }}
+ExecReload=-/sbin/link delete {{ item.key }}a
+ExecStop=/sbin/ip link delete {{ item.key }}a
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,25 @@
+---
+- name: liab/nftables | ensure our default rules exist in sysconfig
+  lineinfile:
+    path: /etc/sysconfig/nftables.conf
+    line: 'include "/etc/nftables/99-lab-in-a-box.nft"'
+    create: yes
+  register: _nftables_conf
+
+- name: liab/nftables | template out rules
+  template:
+    src: 99-lab-in-a-box.nft.j2
+    dest: /etc/nftables/99-lab-in-a-box.nft
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart nftables
+
+- name: liab/nftables | systemd
+  systemd:
+    name: nftables
+    state: started
+    enabled: yes
+
+- name: liab/nftables | flush handlers
+  meta: flush_handlers

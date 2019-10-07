@@ -1,0 +1,21 @@
+---
+- hosts: host_system
+  become: yes
+  gather_facts: no
+  roles:
+  - role: lab-in-a-box/delete-vm
+    vm_group: routers
+  - role: lab-in-a-box/delete-vm
+    vm_group: machines
+  post_tasks:
+  - name: stop veths
+    systemd:
+      name: 'veth-{{ item.key }}.service'
+      state: stopped
+    with_dict: '{{ networks }}'
+    when: '"routing" in item.key'
+
+  - name: delete nm connections
+    command: 'nmcli connection delete {{ item.key }}'
+    with_dict: '{{ networks }}'
+    ignore_errors: yes

@@ -1,0 +1,77 @@
+---
+- name: liab/create-vm | asserts
+  assert:
+    that:
+      - vm_group is defined
+
+- name: liab/create-vm | mktemp
+  command: mktemp -d
+  register: _mktemp
+
+- block:
+  - name: liab/create-vm | check if vm exists in libvirt
+    command: "virsh list --all --name"
+    register: _libvirt_vm_check
+
+  - name: liab/create-vm | fail if vms exists
+    fail:
+    when: "item in _libvirt_vm_check.stdout"
+    with_items: '{{ groups[vm_group] }}'
+
+  # We won't bother checking for an image
+  # Support only for one virtual disk for now
+  - name: liab/create-vm | create image
+    command: "qemu-img create -f qcow2 -b {{ liab_base_image }} /var/lib/libvirt/images/{{ item }}-vda.qcow2 {{ hostvars[item].disks[0].size }}G"
+    with_items: '{{ groups[vm_group] }}'
+
+  - name: liab/create-vm | ensure cloud-init dirs exist
+    file:
+      path: "/var/lib/libvirt/images/{{ item }}"
+      state: directory
+      mode: 0755
+    with_items: '{{ groups[vm_group] }}'
+
+  - name: liab/create-vm | template out cloud-init files
+    template:
+      src: "{{ item[1] }}.j2"
+      dest: "/var/lib/libvirt/images/{{ item[0] }}/{{ item[1] }}"
+      owner: root
+      group: root
+      mode: 0644
+    with_nested:
+    - '{{ groups[vm_group] }}'
+    - ["meta-data", "user-data"]
+
+  - name: liab/create-vm | generate cloud-init iso
+    command: "mkisofs -o /var/lib/libvirt/images/{{ item }}-cidata.iso -V cidata -J -r /var/lib/libvirt/images/{{ item }}/user-data /var/lib/libvirt/images/{{ item }}/meta-data" 
+    with_items: '{{ groups[vm_group] }}'
+
+  - name: liab/create-vm | template out domain file
+    template:
+      src: domain.xml.j2
+      dest: "{{ _mktemp.stdout }}/dom-{{ item }}.xml"
+      owner: root
+      group: root
+      mode: 0644
+    with_items: '{{ groups[vm_group] }}'
+
+  - name: liab/create-vm | define guest domains
+    command: "virsh define {{ _mktemp.stdout }}/dom-{{ item }}.xml"
+    with_items: '{{ groups[vm_group] }}'
+
+  - name: liab/create-vm | start guests
+    command: "virsh start {{ item }}"
+    with_items: '{{ groups[vm_group] }}'
+
+  - name: liab/create-vm | wait for ssh
+    include_role:
+      name: wait-for-ssh
+    vars:
+      wait_for_host: "{{ item }}"
+    with_items: '{{ groups[vm_group] }}'
+
+  always:
+  - name: liab/create-vm | cleanup
+    file:
+      path: "{{ _mktemp.stdout }}"
+      state: absent

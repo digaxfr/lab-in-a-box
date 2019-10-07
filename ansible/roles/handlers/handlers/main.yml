@@ -1,0 +1,31 @@
+---
+# A shared handlers file because why not.
+- name: restart bird
+  systemd:
+    name: bird
+    state: restarted
+
+- name: restart dhcpd
+  systemd:
+    name: dhcpd
+    state: restarted
+
+- name: restart dhcrelay
+  systemd:
+    name: dhcrelay
+    state: restarted
+
+- name: restart named
+  systemd:
+    name: named
+    state: restarted
+
+- name: restart network
+  systemd:
+    name: network
+    state: restarted
+
+- name: restart nftables
+  systemd:
+    name: nftables
+    state: restarted

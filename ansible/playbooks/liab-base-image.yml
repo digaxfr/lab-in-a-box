@@ -1,7 +1,6 @@
 ---
-- hosts: localhost
+- hosts: host_system
   become: yes
   gather_facts: yes
-  connection: local
   roles:
   - lab-in-a-box/base-image

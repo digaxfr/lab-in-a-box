@@ -1,0 +1,14 @@
+# Ansible managed
+[Unit]
+Description=DHCP Relay Agent Daemon
+Documentation=man:dhcrelay(8)
+Wants=network-online.target
+After=network-online.target
+
+# Hard coded for eth0:1 for now until the network routing is refactored
+[Service]
+Type=notify
+ExecStart=/usr/sbin/dhcrelay -d --no-pid {{ dhcp_relay_server }}
+
+[Install]
+WantedBy=multi-user.target

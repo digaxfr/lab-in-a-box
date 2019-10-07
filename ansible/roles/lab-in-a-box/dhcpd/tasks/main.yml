@@ -1,0 +1,23 @@
+---
+- name: liab/dhcpd | install packages (RHEL 8)
+  dnf:
+    name: dhcp-server
+    state: present
+
+- name: liab/dhcpd | template out config
+  template:
+    src: dhcpd.conf.j2
+    dest: /etc/dhcp/dhcpd.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart dhcpd
+
+- name: liab/dhcpd | systemd start and enable
+  systemd:
+    name: dhcpd
+    state: started
+    enabled: yes
+
+- name: liab/dhcpd | flush handlers
+  meta: flush_handlers

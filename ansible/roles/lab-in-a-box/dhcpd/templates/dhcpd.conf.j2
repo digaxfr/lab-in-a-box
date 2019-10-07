@@ -1,0 +1,46 @@
+# dhcpd.conf
+# Ansible managed
+
+option domain-name "{{ domain_name }}";
+default-lease-time 600;
+max-lease-time 7200;
+ddns-update-style none;
+authoritative;
+log-facility local7;
+
+# Routing point-to-point subnets
+{% for network in networks %}
+{% if 'routing' in network %}
+subnet {{ networks[network].network_cidr | ipaddr('network') }} netmask {{ networks[network].network_cidr | ipaddr('netmask') }} {
+  option routers {{ networks[network].network_cidr | ipaddr('0') | ipaddr('address') }};
+  option domain-name-servers {{ networks[network].network_cidr | ipaddr('0') | ipaddr('address') }};
+}
+
+{% endif %}
+{% endfor %}
+{% for router in groups.routers %}
+host {{ router }} {
+  hardware ethernet {{ mac_prefix }}:{{ hostvars[router].ip | ip4_hex(delimiter=':') }};
+  fixed-address {{ hostvars[router].ip }};
+}
+{% endfor %}
+
+# Lab subnets
+{% for network in networks %}
+{% if 'routing' not in network %}
+subnet {{ networks[network].network_cidr | ipaddr('network') }} netmask {{ networks[network].network_cidr | ipaddr('netmask') }} {
+  option routers {{ networks[network].network_cidr | ipaddr('1') | ipaddr('address') }};
+  option domain-name-servers {{ networks[network].network_ext_cidr | ipaddr('0') | ipaddr('address') }};
+}
+
+{% for host in groups[network] %}
+{% if 'router' not in host %}
+host {{ host }} {
+  hardware ethernet {{ mac_prefix }}:{{ hostvars[host].ip | ip4_hex(delimiter=":") }};
+  fixed-address {{ hostvars[host].ip }};
+}
+
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endfor %}
