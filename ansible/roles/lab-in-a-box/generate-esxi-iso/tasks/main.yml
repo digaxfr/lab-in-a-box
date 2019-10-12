@@ -35,6 +35,12 @@
       group: root
       mode: 0640
 
+  - name: generate-esxi-iso | update boot.cfg
+    lineinfile:
+      path: '{{ _mktemp_files.stdout }}/boot.cfg'
+      regexp: kernelopt=*
+      line: kernelopt=cdromBoot runweasel ks=cdrom:/KS.CFG
+
   - name: generate-esxi-iso | generate esxi iso
     command: 'genisoimage -relaxed-filenames -input-charset utf-8 -J -R -o /var/lib/libvirt/images/{{ liab_esxi_custom_iso }} -b isolinux.bin -c boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e efiboot.img -no-emul-boot {{ _mktemp_files.stdout }}'
 
