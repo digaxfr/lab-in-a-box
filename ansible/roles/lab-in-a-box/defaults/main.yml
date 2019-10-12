@@ -1,3 +1,10 @@
 ---
 liab_base_image: CentOS-7-x86_64-GenericCloud-1907.qcow2
 liab_base_image_url: "https://cloud.centos.org/centos/7/images/{{ liab_base_image }}.xz"
+
+# ESXi requires sign-in to download the ISO
+# The base ESXi image has a serial suffix that is manually incremented. This is there really just when the base image needs to be refreshed to restart the 60-day trial counter.
+liab_esxi_name: VMware-VMvisor-Installer-6.7.0.update03-14320388.x86_64
+liab_esxi_iso: '{{ liab_esxi_name }}.iso'
+liab_esxi_custom_iso: 'custom-{{ liab_esxi_name }}.iso'
+liab_esxi_image: 'custom-{{ liab_esxi_name }}.qcow2'

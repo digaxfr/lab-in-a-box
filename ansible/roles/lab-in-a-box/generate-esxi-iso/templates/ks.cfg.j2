@@ -1,0 +1,9 @@
+# https://docs.vmware.com/en/VMware-vSphere/6.5/com.vmware.vsphere.upgrade.doc/GUID-61A14EBB-5CF3-43EE-87EF-DB8EC6D83698.html
+vmaccepteula
+clearpart --alldrives --overwritevmfs
+install --firstdisk=local --overwritevmfs
+network --bootproto=dhcp
+reboot
+# It's a lab...
+# Can also pass it hashed
+rootpw VMware1!

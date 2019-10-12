@@ -1,0 +1,23 @@
+---
+- hosts: host_system
+  become: yes
+  gather_facts: yes
+  pre_tasks:
+  - name: build-new-esxi-image | add dynamic inventory
+    add_host:
+      name: esxi-install
+      groups:
+      - esxi_install
+      type: esxi-install
+      cpu: 2
+      memory: 4096
+      disks:
+      - name: vda
+        size: 16
+      ip: 192.168.254.9
+      network_name: lab1
+
+  roles:
+  - role: lab-in-a-box/create-vm
+    vm_group: esxi_install
+    install_esxi: yes

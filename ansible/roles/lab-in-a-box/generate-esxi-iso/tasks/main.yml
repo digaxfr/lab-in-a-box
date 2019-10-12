@@ -1,0 +1,52 @@
+---
+- name: generate-esxi-iso | stat iso image
+  stat:
+    path: '/var/lib/libvirt/images/{{ liab_esxi_iso }}'
+  register: _stat
+
+- block:
+  - name: generate-esxi-iso | check if iso exists
+    fail:
+    when: 'not _stat.stat.exists'
+
+  - name: generate-esxi-iso | mktemp (iso)
+    command: mktemp -d
+    register: _mktemp_iso
+
+  - name: generate-esxi-iso | mount iso
+    command: 'mount -t iso9660 /var/lib/libvirt/images/{{ liab_esxi_iso }} {{ _mktemp_iso.stdout }}'
+
+  - name: generate-esxi-iso | mktemp (files)
+    command: mktemp -d
+    register: _mktemp_files
+
+  - name: generate-esxi-iso | copy files
+    copy:
+      src: '{{ _mktemp_iso.stdout }}/'
+      dest: '{{ _mktemp_files.stdout }}/'
+      mode: preserve
+      remote_src: yes
+
+  - name: generate-esxi-iso | template kickstart file
+    template:
+      src: ks.cfg.j2
+      dest: '{{ _mktemp_files.stdout }}/ks.cfg'
+      owner: root
+      group: root
+      mode: 0640
+
+  - name: generate-esxi-iso | generate esxi iso
+    command: 'genisoimage -relaxed-filenames -input-charset utf-8 -J -R -o /var/lib/libvirt/images/{{ liab_esxi_custom_iso }} -b isolinux.bin -c boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e efiboot.img -no-emul-boot {{ _mktemp_files.stdout }}'
+
+  always:
+  - name: generate-esxi-iso | umount iso
+    command: 'umount {{ _mktemp_iso.stdout }}'
+    ignore_errors: yes
+
+  - name: generate-esxi-iso | cleanup temp dirs
+    file:
+      name: '{{ item }}'
+      state: absent
+    with_items:
+    - '{{ _mktemp_iso.stdout }}'
+    - '{{ _mktemp_files.stdout }}'

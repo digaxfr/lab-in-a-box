@@ -1,0 +1,26 @@
+---
+- hosts: host_system
+  become: yes
+  gather_facts: no
+  vars_prompt:
+  - name: reset_esxi_config
+    prompt: Did you reset the ESXi configuration?
+    private: no
+
+  - name: shutdown_esxi
+    prompt: Did you shutdown the ESXi host prior to it booting up again?
+    private: no
+
+  tasks:
+  - name: tag-new-esxi-image | include vars
+    include_vars:
+      dir: ../roles/lab-in-a-box/defaults
+
+  - name: tag-new-esxi-image | copy the new image
+    copy:
+      src: /var/lib/libvirt/images/esxi-install-vda.qcow2
+      dest: '/var/lib/libvirt/images/{{ liab_esxi_image }}'
+      owner: root
+      group: root
+      mode: 0640
+      remote_src: yes

@@ -2,16 +2,22 @@
   <name>{{ item }}</name>
   <memory unit='MiB'>{{ hostvars[item].memory }}</memory>
   <currentMemory unit='MiB'>{{ hostvars[item].memory }}</currentMemory>
-  <vcpu>1</vcpu>
+  <vcpu>{{ hostvars[item].cpu }}</vcpu>
   <os>
     <type arch="x86_64" machine="pc-i440fx-rhel7.6.0">hvm</type>
+    <boot dev='hd'/>
+    <boot dev='cdrom'/>
   </os>
   <features>
     <acpi/>
     <apic/>
     <vmport state="off"/>
   </features>
+{% if hostvars[item].type == 'esxi' or hostvars[item].type == 'esxi-install' %}
+  <cpu mode='host-passthrough' check='none'/>
+{% else %}
   <cpu mode="host-model"/>
+{% endif %}
   <clock offset="utc">
     <timer name="rtc" tickpolicy="catchup"/>
     <timer name="pit" tickpolicy="delay"/>
@@ -27,18 +33,39 @@
     <disk type="file" device="disk">
       <driver name="qemu" type="qcow2"/>
       <source file="/var/lib/libvirt/images/{{ item }}-vda.qcow2"/>
+{% if hostvars[item].type == 'esxi' or hostvars[item].type == 'esxi-install' %}
+      <target dev="vda" bus="sata"/>
+{% else %}
       <target dev="vda" bus="virtio"/>
+{% endif %}
     </disk>
+{% if hostvars[item].type == 'machine' %}
     <disk type="file" device="cdrom">
       <driver name="qemu" type="raw"/>
       <source file="/var/lib/libvirt/images/{{ item }}-cidata.iso"/>
       <target dev="hda" bus="ide"/>
     </disk>
+{% endif %}
+{% if hostvars[item].type == 'esxi-install' and (install_esxi is defined and install_esxi) %}
+    <disk type="file" device="cdrom">
+      <driver name="qemu" type="raw"/>
+      <source file="/var/lib/libvirt/images/{{ liab_esxi_custom_iso }}"/>
+      <target dev="hda" bus="ide"/>
+    </disk>
+{% endif %}
+{% if hostvars[item].type == 'esxi' or hostvars[item].type == 'esxi-install' %}
+    <interface type="bridge">
+      <source bridge="{{ hostvars[item].network_name }}"/>
+      <mac address="{{ mac_prefix }}:{{ hostvars[item].ip | ip4_hex(delimiter=':') }}"/>
+      <model type="e1000"/>
+    </interface>
+{% else %}
     <interface type="bridge">
       <source bridge="{{ hostvars[item].network_name }}"/>
       <mac address="{{ mac_prefix }}:{{ hostvars[item].ip | ip4_hex(delimiter=':') }}"/>
       <model type="virtio-net-pci"/>
     </interface>
+{% endif %}
 {% if 'router' in item %}
     <interface type="bridge">
       <source bridge="{{ hostvars[item].network_int_name }}"/>
@@ -46,11 +73,20 @@
       <model type="virtio-net-pci"/>
     </interface>
 {% endif %}
-    <console type="pty">
-      <target type="serial"/>
-    </console>
+{% if hostvars[item].type == 'esxi' or hostvars[item].type == 'esxi-install' %}
+    <graphics type='vnc' port='-1' autoport='yes'>
+      <listen type='address'/>
+    </graphics>
+    <video>
+      <model type='qxl' ram='65536' vram='65536' vgamem='16384' heads='1' primary='yes'/>
+    </video>
+{% else %}
     <video>
       <model type="none"/>
     </video>
+{% endif %}
+    <console type="pty">
+      <target type="serial"/>
+    </console>
   </devices>
 </domain>

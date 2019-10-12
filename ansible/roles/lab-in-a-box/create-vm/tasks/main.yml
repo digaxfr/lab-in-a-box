@@ -23,6 +23,17 @@
   - name: liab/create-vm | create image
     command: "qemu-img create -f qcow2 -b {{ liab_base_image }} /var/lib/libvirt/images/{{ item }}-vda.qcow2 {{ hostvars[item].disks[0].size }}G"
     with_items: '{{ groups[vm_group] }}'
+    when: 'hostvars[item].type == "machine"'
+
+  - name: liab/create-vm | create image (esxi)
+    command: "qemu-img create -f qcow2 -b {{ liab_esxi_image }} /var/lib/libvirt/images/{{ item }}-vda.qcow2 {{ hostvars[item].disks[0].size }}G"
+    with_items: '{{ groups[vm_group] }}'
+    when: 'hostvars[item].type == "esxi"'
+
+  - name: liab/create-vm | create image (new esxi install)
+    command: 'qemu-img create -f qcow2 /var/lib/libvirt/images/{{ item }}-vda.qcow2 16G'
+    with_items: '{{ groups[vm_group] }}'
+    when: 'install_esxi is defined and install_esxi'
 
   - name: liab/create-vm | ensure cloud-init dirs exist
     file:
@@ -30,6 +41,7 @@
       state: directory
       mode: 0755
     with_items: '{{ groups[vm_group] }}'
+    when: 'hostvars[item].type == "machine"'
 
   - name: liab/create-vm | template out cloud-init files
     template:
@@ -41,10 +53,12 @@
     with_nested:
     - '{{ groups[vm_group] }}'
     - ["meta-data", "user-data"]
+    when: 'hostvars[item[0]].type == "machine"'
 
   - name: liab/create-vm | generate cloud-init iso
     command: "mkisofs -o /var/lib/libvirt/images/{{ item }}-cidata.iso -V cidata -J -r /var/lib/libvirt/images/{{ item }}/user-data /var/lib/libvirt/images/{{ item }}/meta-data" 
     with_items: '{{ groups[vm_group] }}'
+    when: 'hostvars[item].type == "machine"'
 
   - name: liab/create-vm | template out domain file
     template:
@@ -69,6 +83,12 @@
     vars:
       wait_for_host: "{{ item }}"
     with_items: '{{ groups[vm_group] }}'
+    when: 'hostvars[item].type == "machine"'
+
+  - name: liab/create-vm | esxi install message
+    debug:
+      msg: 'You need to manually check via VNC to see if the installer is done as it auto-reboots and does not shutdown instead!'
+    when: 'install_esxi is defined and install_esxi'
 
   always:
   - name: liab/create-vm | cleanup

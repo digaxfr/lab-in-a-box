@@ -120,6 +120,7 @@ class LabInABox(object):
         details['netmask'] = str(ip_network.netmask)
         details['network_cidr'] = str(ip_network.cidr)
         details['network_name'] = network_name
+
         return details
 
     def _set_router_hostvars(self, network_name, network_details):
@@ -202,11 +203,19 @@ class LabInABox(object):
         self.inventory['dhcrelay'] = self._empty_group()
         self.inventory['dhcrelay']['children'].append('routers')
 
-        # The 'machines' aux group, where all VMs (except routers) go
+        # ESXi
+        self.inventory['esxi'] = self._empty_group()
+        for _, net_details in config['lab_machines'].items():
+            for machine, machine_details in net_details['machines'].items():
+                if machine_details['type'] == 'esxi':
+                    self.inventory['esxi']['hosts'].append('%s.%s' % (machine, DOMAIN_NAME))
+
+        # machines
         self.inventory['machines'] = self._empty_group()
         for _, net_details in config['lab_machines'].items():
-            for machine in net_details['machines']:
-                self.inventory['machines']['hosts'].append('%s.%s' % (machine, DOMAIN_NAME))
+            for machine, machine_details in net_details['machines'].items():
+                if machine_details['type'] == 'machine':
+                    self.inventory['machines']['hosts'].append('%s.%s' % (machine, DOMAIN_NAME))
 
         # Generate machine hosts
         for net_group, net_details in config['lab_machines'].items():

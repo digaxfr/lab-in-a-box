@@ -60,3 +60,18 @@
     name: nftables
     state: started
     enabled: yes
+
+- name: host-system | enable nested vt-x
+  lineinfile:
+    path: /etc/modprobe.d/kvm.conf
+    line: '{{ item }}'
+    state: present
+  with_items:
+  - options kvm ignore_msrs=1
+  - options kvm_intel nested=1 enable_apicv=n
+  register: _vtx
+
+- name: host-system | reboot required
+  debug:
+    msg: 'Reboot is required to load relevant Kernel module changes!'
+  when: _vtx.changed
