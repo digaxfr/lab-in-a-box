@@ -139,6 +139,7 @@ class LabInABox(object):
         details['cpu'] = 1
         details['memory'] = 384
         details['disks'] = [{ 'name': 'vda', 'size': 8 }]
+        details['type'] = 'router'
         ip_network = netaddr.IPNetwork(network_details['peering_network'])
         ip_int_network = netaddr.IPNetwork(network_details['network'])
         details['gateway'] = str(ip_network[0])

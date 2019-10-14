@@ -23,7 +23,7 @@
   - name: liab/create-vm | create image
     command: "qemu-img create -f qcow2 -b {{ liab_base_image }} /var/lib/libvirt/images/{{ item }}-vda.qcow2 {{ hostvars[item].disks[0].size }}G"
     with_items: '{{ groups[vm_group] }}'
-    when: 'hostvars[item].type == "machine"'
+    when: 'hostvars[item].type == "machine" or hostvars[item].type == "router"'
 
   - name: liab/create-vm | create image (esxi)
     command: "qemu-img create -f qcow2 -b {{ liab_esxi_image }} /var/lib/libvirt/images/{{ item }}-vda.qcow2 {{ hostvars[item].disks[0].size }}G"
@@ -41,7 +41,7 @@
       state: directory
       mode: 0755
     with_items: '{{ groups[vm_group] }}'
-    when: 'hostvars[item].type == "machine"'
+    when: 'hostvars[item].type == "machine" or hostvars[item].type == "router"'
 
   - name: liab/create-vm | template out cloud-init files
     template:
@@ -53,12 +53,12 @@
     with_nested:
     - '{{ groups[vm_group] }}'
     - ["meta-data", "user-data"]
-    when: 'hostvars[item[0]].type == "machine"'
+    when: 'hostvars[item[0]].type == "machine" or hostvars[item[0]].type == "router"'
 
   - name: liab/create-vm | generate cloud-init iso
     command: "mkisofs -o /var/lib/libvirt/images/{{ item }}-cidata.iso -V cidata -J -r /var/lib/libvirt/images/{{ item }}/user-data /var/lib/libvirt/images/{{ item }}/meta-data" 
     with_items: '{{ groups[vm_group] }}'
-    when: 'hostvars[item].type == "machine"'
+    when: 'hostvars[item].type == "machine" or hostvars[item].type == "router"'
 
   - name: liab/create-vm | template out domain file
     template:
@@ -83,7 +83,7 @@
     vars:
       wait_for_host: "{{ item }}"
     with_items: '{{ groups[vm_group] }}'
-    when: 'hostvars[item].type == "machine"'
+    when: 'hostvars[item].type == "machine" or hostvars[item].type == "router"'
 
   - name: liab/create-vm | esxi install message
     debug:

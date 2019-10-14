@@ -11,6 +11,8 @@ table ip filter {
     ct state established,related accept
     iifname "lo" accept
     icmp type echo-request accept
+{% set network_netmask = ansible_default_ipv4.network + '/' + ansible_default_ipv4.netmask %}
+    tcp dport 22 ip saddr {{ network_netmask | ipaddr('network/prefix') }} accept
   }
 
   chain forward {

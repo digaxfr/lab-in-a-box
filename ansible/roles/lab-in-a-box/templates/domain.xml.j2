@@ -39,7 +39,7 @@
       <target dev="vda" bus="virtio"/>
 {% endif %}
     </disk>
-{% if hostvars[item].type == 'machine' %}
+{% if hostvars[item].type == 'machine' or hostvars[item].type == 'router' %}
     <disk type="file" device="cdrom">
       <driver name="qemu" type="raw"/>
       <source file="/var/lib/libvirt/images/{{ item }}-cidata.iso"/>
