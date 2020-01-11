@@ -1,6 +1,8 @@
 ---
 host_system_memory_swappiness: 100
 host_system_packages:
-- "@Virtualization Host"
+#- "@Virtualization Host"   # CentOS8
+- '@virtualization'         # Fedora 31
 - tigervnc
 - virt-install
+- ksmtuned

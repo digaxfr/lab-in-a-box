@@ -8,8 +8,6 @@
   with_items:
   - key: net.ipv4.ip_forward
     value: 1
-  - key: vm.swappiness
-    value: 100
 
 - name: host-system | install packages
   dnf:
@@ -33,33 +31,36 @@
   - "virsh net-destroy default"
   - "virsh net-undefine default"
 
-- name: host-system | disable firewalld
-  systemd:
-    name: firewalld
-    state: stopped
-    enabled: no
+#- name: host-system | disable firewalld
+#  systemd:
+#    name: firewalld
+#    state: stopped
+#    enabled: no
 
-- name: host-system | ensure our default rules exist in sysconfig
-  lineinfile:
-    path: /etc/sysconfig/nftables.conf
-    line: 'include "/etc/nftables/99-localmachine.nft"'
-    create: yes
-  notify: restart nftables
+# CentOS 8 /nft
+#- name: host-system | ensure our default rules exist in sysconfig
+#  lineinfile:
+#    path: /etc/sysconfig/nftables.conf
+#    line: 'include "/etc/nftables/99-localmachine.nft"'
+#    create: yes
+#  notify: restart nftables
 
-- name: host-system | template out our default rules
-  template:
-    src: 99-localmachine.nft.j2
-    dest: /etc/nftables/99-localmachine.nft
-    owner: root
-    group: root
-    mode: 0644
-  notify: restart nftables
+# CentOS 8 / nft
+#- name: host-system | template out our default rules
+#  template:
+#    src: 99-localmachine.nft.j2
+#    dest: /etc/nftables/99-localmachine.nft
+#    owner: root
+#    group: root
+#    mode: 0644
+#  notify: restart nftables
 
-- name: host-system | enable and start nftables
-  systemd:
-    name: nftables
-    state: started
-    enabled: yes
+# CentOS 8 /nft
+#- name: host-system | enable and start nftables
+#  systemd:
+#    name: nftables
+#    state: started
+#    enabled: yes
 
 - name: host-system | enable nested vt-x
   lineinfile:
@@ -75,3 +76,7 @@
   debug:
     msg: 'Reboot is required to load relevant Kernel module changes!'
   when: _vtx.changed
+
+# https://openterprise.it/2019/03/enable-ksm-kernel-same-page-merging-on-fedora/
+# Do I need to do this?
+# echo 1 > /sys/kernel/mm/ksm/run

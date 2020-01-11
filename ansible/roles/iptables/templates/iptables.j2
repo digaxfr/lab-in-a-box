@@ -1,0 +1,43 @@
+# Ansible managed
+
+# Boiler plate section
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -i lo -j ACCEPT
+-A INPUT -p tcp -m tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG NONE -j DROP
+-A INPUT -p tcp -m tcp ! --tcp-flags FIN,SYN,RST,ACK SYN -m conntrack --ctstate NEW -j DROP
+-A INPUT -p tcp -m tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG FIN,SYN,RST,PSH,ACK,URG -j DROP
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+# Lab networks
+{% for network in networks %}
+{% if 'routing' in network %}
+# INPUT
+-N input-{{ network }}a
+-A input-{{ network }}a -p icmp --icmp-type 8 -j ACCEPT
+-A input-{{ network }}a -p udp -m conntrack --ctstate new -m udp --dport 53 -j ACCEPT
+-A input-{{ network }}a -p udp -m conntrack --ctstate new -m udp --dport 67 -j ACCEPT
+-A INPUT -i {{ network }}a -j input-{{ network }}a
+
+# FORWARD
+-N forward-{{ network }}a
+-A forward-{{ network }}a -s {{ networks[network].network_int_cidr }} -j ACCEPT
+-A forward-{{ network }}a -d {{ networks[network].network_int_cidr }} -j ACCEPT
+-A forward-{{ network }}a -s {{ networks[network].network_cidr }} -j ACCEPT
+-A forward-{{ network }}a -d {{ networks[network].network_cidr }} -j ACCEPT
+-A FORWARD -i {{ network }}a -j forward-{{ network }}a
+-A FORWARD -o {{ network }}a -j forward-{{ network }}a
+{% endif %}
+{% endfor %}
+
+COMMIT
+
+# NAT/Masquerade
+*nat
+:PREROUTING ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+-A POSTROUTING -o{{ ansible_default_ipv4.interface }} -j MASQUERADE
+
+COMMIT

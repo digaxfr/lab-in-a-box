@@ -3,5 +3,5 @@
   become: yes
   gather_facts: yes
   roles:
+  - iptables
   - host-system
-  - epel

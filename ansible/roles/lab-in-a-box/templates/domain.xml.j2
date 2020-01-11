@@ -4,7 +4,7 @@
   <currentMemory unit='MiB'>{{ hostvars[item].memory }}</currentMemory>
   <vcpu>{{ hostvars[item].cpu }}</vcpu>
   <os>
-    <type arch="x86_64" machine="pc-i440fx-rhel7.6.0">hvm</type>
+    <type arch="x86_64" machine="pc">hvm</type>
     <boot dev='hd'/>
     <boot dev='cdrom'/>
   </os>
@@ -28,7 +28,6 @@
     <suspend-to-disk enabled="no"/>
   </pm>
   <devices>
-    <emulator>/usr/libexec/qemu-kvm</emulator>
     <controller type="usb" index="0" model="none"/>
     <disk type="file" device="disk">
       <driver name="qemu" type="qcow2"/>

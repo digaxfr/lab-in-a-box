@@ -4,7 +4,6 @@
   gather_facts: yes
   roles:
   - lab-in-a-box/networking
-  - lab-in-a-box/nftables
   - lab-in-a-box/dhcpd
   - lab-in-a-box/named
   - lab-in-a-box/bird2

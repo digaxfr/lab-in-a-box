@@ -10,33 +10,33 @@ lab_machines:
     machines:
       master1:
         cpu: 1
-        memory: 1024
+        memory: 768
         ip: 192.168.254.10
         disks:
         - name: vda
-          size: 64
+          size: 32
         type: machine
-      esxi1:
-        cpu: 2
-        memory: 4096
-        ip: 192.168.254.11
-        disks:
-        - name: vda
-          size: 64
-        type: esxi
+#      esxi1:
+#        cpu: 2
+#        memory: 4096
+#        ip: 192.168.254.11
+#        disks:
+#        - name: vda
+#          size: 64
+#        type: esxi
   lab2:
     network: 192.168.253.0/24
     peering_network: 192.168.255.252/31
     bgp_asn: 65002
-    machines: {}
-#      master2:
-#        cpu: 1
-#        memory: 1024
-#        ip: 192.168.253.10
-#        disks:
-#        - name: vda
-#          size: 64
-#        type: machine
+    machines:
+      master2:
+        cpu: 1
+        memory: 768
+        ip: 192.168.253.10
+        disks:
+        - name: vda
+          size: 32
+        type: machine
 #      esxi2:
 #        cpu: 2
 #        memory: 4096
@@ -49,15 +49,15 @@ lab_machines:
     network: 192.168.252.0/24
     peering_network: 192.168.255.250/31
     bgp_asn: 65003
-    machines: {}
-#      master3:
-#        cpu: 1
-#        memory: 1024
-#        ip: 192.168.252.10
-#        disks:
-#        - name: vda
-#          size: 64
-#        type: machine
+    machines:
+      master3:
+        cpu: 1
+        memory: 768
+        ip: 192.168.252.10
+        disks:
+        - name: vda
+          size: 32
+        type: machine
 #      esxi3:
 #        cpu: 2
 #        memory: 4096
@@ -67,4 +67,4 @@ lab_machines:
 #          size: 64
 #        type: esxi
 
-lab_public_ssh_key: "AAAAB3NzaC1yc2EAAAADAQABAAABAQDrqxGbTKZj5PMtc2iOIaIPZuuk1GSUR0n4JCFEVIbNBuwI472cP6ShHr5iVWwdCDb4cbd70cPonG8Ayx7XGYCDYsbjakl4Vdz4a79UCZxMunNsRTFa3SPQGHU8qATn1UONoKFeKzfB+7H5/xC/EMBLwiyDRTr8H0kckuZUQVwOPHP/tAG/hXj/De2SNKdNxvB6mR8CNlLGnCpxj61WzWMEOFXRVr4cOtGj+Hdm37VZ7TE79gwX9HR5m2boRBI8nCQSz+U5hSXxIelzccChY1FiPwikmUx6Tkv4eoS6etwaoXdtY3CN9SVBBaC5VBNpc56TM3QZh353jIm4UUX+3dC9 dchin@failxps.localdomain"
+lab_public_ssh_key: 'ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHYU5ohkrcI9PZHZZTFWkhlKfCfp5rsEslWDyzz3w3hYzec/fOiP92M29Ck/JS35N1BZ+vZZ7JOqjxmXhADt6V8='
