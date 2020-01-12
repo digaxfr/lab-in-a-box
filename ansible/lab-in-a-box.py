@@ -8,6 +8,7 @@ Used ec2.py as a reference: https://github.com/ansible/ansible/blob/devel/contri
 
 import json
 import netaddr
+import requests
 import yaml
 
 class LabInABox(object):
@@ -159,11 +160,17 @@ class LabInABox(object):
 
         ''' Set variables that would be used globally. '''
 
-        with open('lab-in-a-box.yaml', 'r') as stream:
-            try:
-                config = yaml.safe_load(stream)
-            except yaml.YAMLError as exc:
-                print('Error opening yaml:', exc)
+#        with open('lab-in-a-box.yaml', 'r') as stream:
+#            try:
+#                config = yaml.safe_load(stream)
+#            except yaml.YAMLError as exc:
+#                print('Error opening yaml:', exc)
+
+        request_yaml_file = requests.get('https://raw.githubusercontent.com/digaxfr/lab-in-a-box/master/ansible/lab-in-a-box.yaml')
+        try:
+            config = yaml.safe_load(request_yaml_file.text)
+        except yaml.YAMLError as exc:
+            print('Error opening yaml:', exc)
 
         global DOMAIN_NAME, HOST_BGP_ASN, MAC_PREFIX, PUBLIC_SSH_KEY
         DOMAIN_NAME = config['lab_domain_name']
@@ -178,11 +185,17 @@ class LabInABox(object):
         self._default_vars()
 
         # Load up our yaml
-        with open('lab-in-a-box.yaml', 'r') as stream:
-            try:
-                config = yaml.safe_load(stream)
-            except yaml.YAMLError as exc:
-                print('Error opening yaml:', exc)
+#        with open('lab-in-a-box.yaml', 'r') as stream:
+#            try:
+#                config = yaml.safe_load(stream)
+#            except yaml.YAMLError as exc:
+#                print('Error opening yaml:', exc)
+
+        request_yaml_file = requests.get('https://raw.githubusercontent.com/digaxfr/lab-in-a-box/master/ansible/lab-in-a-box.yaml')
+        try:
+            config = yaml.safe_load(request_yaml_file.text)
+        except yaml.YAMLError as exc:
+            print('Error opening yaml:', exc)
 
         # For the first iteration of this script, we will take a very easy-to-read approach; meaning it will not be efficient
 
