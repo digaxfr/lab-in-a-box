@@ -16,6 +16,14 @@ lab_machines:
         - name: vda
           size: 32
         type: machine
+      awx:
+        cpu: 2
+        memory: 4096
+        ip: 192.168.254.11
+        disks:
+        - name: vda
+          size: 32
+        type: machine
 #      esxi1:
 #        cpu: 2
 #        memory: 4096
